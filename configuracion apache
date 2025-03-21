@@ -1,0 +1,69 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerName 192.168.2.23
+    ServerAdmin webmaster@localhost
+
+    # ===========================================
+    # CONFIGURACIÓN DE DJANGO CON WSGI
+    # ===========================================
+    WSGIDaemonProcess django_ssl_app python-path="/home/devsarare/Descargas/10-de-marzo/6-de-marzo-main" \
+                                        python-home="/home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/venv"
+    WSGIProcessGroup django_ssl_app
+    WSGIScriptAlias / /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/hospital_document_management/wsgi.py
+
+    <Directory /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/hospital_document_management>
+        <Files wsgi.py>
+            Require all granted
+        </Files>
+    </Directory>
+
+    # ===========================================
+    # CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
+    # ===========================================
+    Alias /static/ /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/staticfiles/
+
+    <Directory /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/staticfiles>
+        Require all granted
+        Options FollowSymLinks
+    </Directory>
+
+    # ===========================================
+    # CONFIGURACIÓN DE ARCHIVOS MEDIA (DOCUMENTOS)
+    # ===========================================
+    Alias /media/ /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/media/
+
+    <Directory /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/media>
+        Require all granted
+        Options FollowSymLinks
+    </Directory>
+
+    # ===========================================
+    # CONFIGURACIÓN SSL
+    # ===========================================
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/ssl/django-selfsigned.crt
+    SSLCertificateKeyFile /etc/apache2/ssl/django-selfsigned.key
+
+    # Ajustes de seguridad SSL
+    SSLProtocol all -SSLv2 -SSLv3
+    SSLCipherSuite HIGH:!aNULL:!MD5
+    SSLHonorCipherOrder on
+
+    # ===========================================
+    # LOGS
+    # ===========================================
+    ErrorLog ${APACHE_LOG_DIR}/django-ssl-error.log
+    CustomLog ${APACHE_LOG_DIR}/django-ssl-access.log combined
+
+    # ===========================================
+    # FORZAR DESCARGA DE ARCHIVOS MEDIA
+    # ===========================================
+    <Directory /home/devsarare/Descargas/10-de-marzo/6-de-marzo-main/media>
+        Require all granted
+        Options FollowSymLinks
+        ForceType application/octet-stream
+        Header set Content-Disposition attachment
+    </Directory>
+
+</VirtualHost>
+</IfModule>
