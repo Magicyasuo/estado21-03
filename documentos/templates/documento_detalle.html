@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<main class="full-page">
+  <!-- Hero Section -->
+
+  
+
+  {% if fuid %}
+  <a href="{% url 'detalle_fuid' fuid.id %}" class="btn btn-secondary mb-3">
+    <i class="bi bi-arrow-left"></i> Volver al FUID
+</a>
+{% endif %}
+
+
+  <section class="hero text-center text-white py-5">
+    <div class="container">
+      <h1 class="display-4 fw-bold">
+        📁 Documentos del Registro #{{ registro.numero_orden }}
+      </h1>
+      <p class="lead" style="color: #ff4500;">Consulta y descarga los archivos asociados</p>
+    </div>
+  </section>
+
+
+
+  <!-- Documentos -->
+  <section class="documents py-5">
+    <div class="container">
+      {% if documentos %}
+        <div class="row g-4">
+          {% for documento in documentos %}
+            <div class="col-md-6 col-lg-4">
+              <div class="card document-card shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-text document-icon"></i>
+                    <h5 class="card-title">{{ documento.archivo.name|cut:"documentos/" }}</h5>
+                  </div>
+                  <p class="card-text text-muted">
+                    <i class="bi bi-calendar-check"></i> Subido el {{ documento.uploaded_at|date:"d M Y, H:i" }}
+                  </p>
+                  <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ documento.archivo.url }}" target="_blank" class="btn btn-primary">
+                       <i class="bi bi-eye"></i> Ver
+                    </a>
+                    <a href="{{ documento.archivo.url }}" download class="btn btn-success">
+                       <i class="bi bi-download"></i> Descargar
+                    </a>
+                 </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-warning text-center py-4">
+          <i class="bi bi-exclamation-circle-fill text-danger fs-3"></i>
+          <h4 class="mt-2">No hay documentos disponibles</h4>
+          <p class="text-muted">Este registro no tiene archivos asociados.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+<!-- <footer class="text-center py-3">
+  &copy; {{ current_year }} Hospital del Sarare - Central de Archivos.
+</footer> -->
+
+<!-- Estilos Personalizados -->
+<style>
+  /* Fondo general */
+  body {
+    background: linear-gradient(135deg, #f4f6f8, #e9edf1);
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Main ocupa toda la página */
+  .full-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, #003366, #0056b3);
+    padding: 80px 0;
+  }
+
+  .hero h1 {
+    color: rgb(255, 251, 251);
+  }
+
+  /* Documentos */
+  .documents {
+    flex-grow: 1;
+  }
+
+  .document-card {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .document-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .document-icon {
+    font-size: 2rem;
+    color: #0056b3;
+    margin-right: 10px;
+  }
+
+  .btn-primary {
+    background: #0069d9;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: #005bb5;
+  }
+
+  .btn-success {
+    background: #28a745;
+    border: none;
+  }
+
+  .btn-success:hover {
+    background: #218838;
+  }
+
+  /* Footer pegado abajo */
+  footer {
+    background: #003366;
+    color: white;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+    margin-top: auto;
+  }
+</style>
+
+{% endblock %}
