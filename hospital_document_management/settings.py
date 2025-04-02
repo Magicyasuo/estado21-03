@@ -107,15 +107,8 @@ AXES_ONLY_USER_FAILURES = True
 # ====================================================================================
 DATABASES = {
     "default": {
-        "ENGINE": "mssql",
-        "NAME": os.getenv("DB_NAME", "NombreDeTuDB"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "1433"),
-        "USER": os.getenv("DB_USER", "usuario"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "contraseña"),
-        "OPTIONS": {
-            "driver": "ODBC Driver 17 for SQL Server",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     },
 }
 
