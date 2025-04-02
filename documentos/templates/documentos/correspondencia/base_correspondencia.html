@@ -1,0 +1,267 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Correspondencia{% endblock %}</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        .card-dashboard {
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: ">";
+        }
+        .dashboard-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .accesibilidad-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        /* Corrección de z-index para evitar solapamientos */
+        .navbar {
+            position: relative;
+            z-index: 1050; /* Valor alto para asegurar que esté por encima de otros elementos */
+        }
+        main > .container-fluid {
+            position: relative;
+            z-index: 1; /* Valor bajo para asegurar que quede debajo del navbar */
+        }
+        .card {
+            position: relative;
+            overflow: visible;
+        }
+        /* Botones de acción en tabla de correspondencia */
+        .table .btn-sm {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0;
+            margin: 3px;
+        }
+        .table .btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+        .table .btn-sm i {
+            font-size: 16px;
+        }
+        /* Estilos para modo de alto contraste */
+        body.high-contrast {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+        body.high-contrast .card,
+        body.high-contrast .navbar,
+        body.high-contrast .content-wrapper,
+        body.high-contrast .content-header,
+        body.high-contrast .main-footer {
+            background-color: #000 !important;
+            color: #fff !important;
+            border: 1px solid #fff;
+        }
+        body.high-contrast a {
+            color: #ffff00 !important;
+        }
+        body.high-contrast .btn {
+            border: 2px solid #fff;
+        }
+        /* Texto más grande */
+        body.larger-text {
+            font-size: 120% !important;
+        }
+        body.larger-text .card-title,
+        body.larger-text .nav-link,
+        body.larger-text .btn {
+            font-size: 120% !important;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+        }
+        footer {
+            margin-top: 3rem;
+            padding: 1rem;
+            background: #003366;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        .card {
+            height: 100%;
+        }
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+    <main>
+        <!-- Navbar -->
+        <nav class="navbar navbar-light bg-light mb-4 animate__animated animate__fadeInDown animate__delay-1s">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <i class="bi bi-archive-fill text-primary me-2" style="font-size:1.5rem;"></i>
+                    Hospital del Sarare
+                </a>
+                <span class="navbar-text">
+                    {% if request.user.is_authenticated %}
+                        Bienvenido, {{ request.user.username }} | <a href="{% url 'logout' %}">Cerrar sesión</a>
+                    {% else %}
+                        <a href="{% url 'login' %}">Iniciar sesión</a>
+                    {% endif %}
+                </span>
+            </div>
+        </nav>
+
+
+        <div class="container-fluid mt-4" style="width: 95%; margin: 0 auto;">
+            <!-- Breadcrumb y título -->
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <h1>{% block header_title %}Gestión de Correspondencia{% endblock %}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-end">
+                        <li class="breadcrumb-item"><a href="{% url 'welcome' %}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'lista_correspondencia' %}">Correspondencia</a></li>
+                        {% block breadcrumbs %}{% endblock %}
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Menú de correspondencia -->
+            {% include "documentos/correspondencia/menu_correspondencia.html" %}
+            
+            <!-- Contenido principal -->
+            {% block correspondencia_content %}{% endblock %}
+        </div>
+
+        <!-- Botón de accesibilidad -->
+        <button class="btn btn-primary accesibilidad-btn" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#opcionesAccesibilidad" 
+                aria-expanded="false" 
+                aria-controls="opcionesAccesibilidad"
+                aria-label="Opciones de accesibilidad">
+            <i class="fas fa-universal-access"></i>
+        </button>
+
+        <!-- Panel de accesibilidad -->
+        <div class="collapse position-fixed" id="opcionesAccesibilidad" 
+            style="bottom: 80px; right: 20px; width: 250px; z-index: 1000;">
+            <div class="card card-body">
+                <h5 class="card-title">Accesibilidad</h5>
+                <button class="btn btn-outline-dark mb-2" id="toggleContrast">
+                    <i class="fas fa-adjust"></i> Alto contraste
+                </button>
+                <button class="btn btn-outline-dark mb-2" id="toggleTextSize">
+                    <i class="fas fa-text-height"></i> Texto más grande
+                </button>
+                <button class="btn btn-outline-dark" id="readPage" aria-label="Leer página">
+                    <i class="fas fa-volume-up"></i> Leer página
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; {{ current_year|default:2023 }} Hospital del Sarare - Central de Archivos del Sarare.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Funcionalidad de alto contraste
+            $('#toggleContrast').click(function() {
+                $('body').toggleClass('high-contrast');
+                localStorage.setItem('highContrast', $('body').hasClass('high-contrast'));
+            });
+            
+            // Funcionalidad de texto más grande
+            $('#toggleTextSize').click(function() {
+                $('body').toggleClass('larger-text');
+                localStorage.setItem('largerText', $('body').hasClass('larger-text'));
+            });
+            
+            // Lector de pantalla básico
+            $('#readPage').click(function() {
+                const contentToRead = document.querySelector('main').textContent;
+                
+                if ('speechSynthesis' in window) {
+                    const speech = new SpeechSynthesisUtterance();
+                    speech.text = contentToRead;
+                    speech.lang = 'es-ES';
+                    speech.volume = 1;
+                    speech.rate = 1;
+                    speech.pitch = 1;
+                    
+                    // Cancelar si ya está hablando
+                    if (window.speechSynthesis.speaking) {
+                        window.speechSynthesis.cancel();
+                    } else {
+                        window.speechSynthesis.speak(speech);
+                    }
+                } else {
+                    alert('Lo sentimos, su navegador no soporta la función de lectura de texto.');
+                }
+            });
+            
+            // Recuperar preferencias del usuario
+            if(localStorage.getItem('highContrast') === 'true') {
+                $('body').addClass('high-contrast');
+            }
+            
+            if(localStorage.getItem('largerText') === 'true') {
+                $('body').addClass('larger-text');
+            }
+        });
+    </script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html> 

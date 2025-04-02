@@ -1,0 +1,173 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+
+{% block title %}Detalle de Contacto{% endblock %}
+
+{% block header_title %}Detalle de Contacto{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'lista_contactos' %}">Contactos</a></li>
+<li class="breadcrumb-item active">Detalle</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="row">
+    <!-- Información principal del contacto -->
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-address-card me-2"></i> {{ contacto.nombre }}
+                    </h3>
+                    <span class="badge bg-light text-dark">
+                        {% if contacto.tipo == 'PER' %}
+                            Persona
+                        {% elif contacto.tipo == 'ENT' %}
+                            Entidad
+                        {% else %}
+                            Otro
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-3 border-bottom pb-2"><i class="fas fa-id-card me-2"></i> Información de Identificación</h5>
+                        <p><strong>Tipo de Identificación:</strong> {{ contacto.tipo_identificacion }}</p>
+                        <p><strong>Número de Identificación:</strong> {{ contacto.identificacion }}</p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="mb-3 border-bottom pb-2"><i class="fas fa-envelope me-2"></i> Información de Contacto</h5>
+                        <p><strong>Dirección:</strong> {{ contacto.direccion|default:"No especificada" }}</p>
+                        <p><strong>Ciudad:</strong> {{ contacto.ciudad|default:"No especificada" }}</p>
+                        <p>
+                            <strong>Teléfono:</strong> 
+                            {% if contacto.telefono %}
+                                <a href="tel:{{ contacto.telefono }}">{{ contacto.telefono }}</a>
+                            {% else %}
+                                No especificado
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Correo Electrónico:</strong> 
+                            {% if contacto.correo %}
+                                <a href="mailto:{{ contacto.correo }}">{{ contacto.correo }}</a>
+                            {% else %}
+                                No especificado
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if contacto.observaciones %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="mb-3 border-bottom pb-2"><i class="fas fa-comment me-2"></i> Observaciones</h5>
+                        <div class="p-3 bg-light rounded">
+                            {{ contacto.observaciones|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{% url 'lista_contactos' %}" class="btn btn-outline-secondary btn-sm" aria-label="Volver a la lista de contactos">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                    <div>
+                        {% if perms.documentos.change_contacto or request.user.is_superuser %}
+                        <a href="{% url 'editar_contacto' contacto.id %}" class="btn btn-outline-primary btn-sm" aria-label="Editar contacto">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        {% endif %}
+                        
+                        {% if perms.documentos.delete_contacto or request.user.is_superuser %}
+                        <a href="{% url 'eliminar_contacto' contacto.id %}" class="btn btn-outline-danger btn-sm" aria-label="Eliminar contacto">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel lateral con correspondencia relacionada -->
+    <div class="col-md-4">
+        <!-- Correspondencia de entrada -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-inbox me-2"></i> Correspondencia de Entrada
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if correspondencia_entrada %}
+                <div class="list-group">
+                    {% for corr in correspondencia_entrada %}
+                    <a href="{% url 'detalle_correspondencia' corr.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ corr.numero_radicado }}</h6>
+                            <small>{{ corr.fecha_radicacion|date:"d/m/Y" }}</small>
+                        </div>
+                        <p class="mb-1">{{ corr.asunto|truncatechars:50 }}</p>
+                        <small>
+                            {% if corr.estado == 'BOR' %}
+                            <span class="badge bg-secondary">Borrador</span>
+                            {% elif corr.estado == 'RAD' %}
+                            <span class="badge bg-success">Radicado</span>
+                            {% elif corr.estado == 'ANU' %}
+                            <span class="badge bg-danger">Anulado</span>
+                            {% endif %}
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No hay correspondencia de entrada asociada a este contacto.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Correspondencia de salida -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-paper-plane me-2"></i> Correspondencia de Salida
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if correspondencia_salida %}
+                <div class="list-group">
+                    {% for corr in correspondencia_salida %}
+                    <a href="{% url 'detalle_correspondencia' corr.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ corr.numero_radicado }}</h6>
+                            <small>{{ corr.fecha_radicacion|date:"d/m/Y" }}</small>
+                        </div>
+                        <p class="mb-1">{{ corr.asunto|truncatechars:50 }}</p>
+                        <small>
+                            {% if corr.estado == 'BOR' %}
+                            <span class="badge bg-secondary">Borrador</span>
+                            {% elif corr.estado == 'RAD' %}
+                            <span class="badge bg-success">Radicado</span>
+                            {% elif corr.estado == 'ANU' %}
+                            <span class="badge bg-danger">Anulado</span>
+                            {% endif %}
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No hay correspondencia de salida asociada a este contacto.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

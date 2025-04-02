@@ -1,0 +1,90 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Agregar Adjunto{% endblock %}
+
+{% block header_title %}Agregar Adjunto{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'lista_correspondencia' %}">Correspondencia</a></li>
+<li class="breadcrumb-item"><a href="{% url 'detalle_correspondencia' correspondencia.id %}">Detalle</a></li>
+<li class="breadcrumb-item active">Agregar Adjunto</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-paperclip me-2"></i> Agregar Archivo Adjunto
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5 class="mb-3">Correspondencia</h5>
+                    <div class="p-3 bg-light rounded">
+                        <p><strong>Radicado:</strong> {{ correspondencia.numero_radicado }}</p>
+                        <p><strong>Asunto:</strong> {{ correspondencia.asunto }}</p>
+                        <p>
+                            <strong>Tipo:</strong> 
+                            {% if correspondencia.tipo_correspondencia == 'ENT' %}
+                                Entrada
+                            {% elif correspondencia.tipo_correspondencia == 'SAL' %}
+                                Salida
+                            {% elif correspondencia.tipo_correspondencia == 'INT' %}
+                                Interna
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="form-adjunto">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                            {{ form.nombre.label }}
+                            {% if form.nombre.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {% render_field form.nombre class+="form-control" placeholder="Nombre descriptivo del documento" %}
+                        {% if form.nombre.errors %}
+                        <div class="text-danger">
+                            {% for error in form.nombre.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Asigne un nombre descriptivo que permita identificar el contenido del documento.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.archivo.id_for_label }}" class="form-label">
+                            {{ form.archivo.label }}
+                            {% if form.archivo.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {% render_field form.archivo class+="form-control" %}
+                        {% if form.archivo.errors %}
+                        <div class="text-danger">
+                            {% for error in form.archivo.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Formatos admitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG. Tamaño máximo: 5MB.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'detalle_correspondencia' correspondencia.id %}" class="btn btn-outline-secondary" aria-label="Cancelar">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" aria-label="Guardar adjunto">
+                            <i class="fas fa-save"></i> Guardar Adjunto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

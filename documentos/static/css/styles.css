@@ -12,6 +12,10 @@ body {
 .navbar {
     background-color: #f8f9fa; /* Cremita */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    position: sticky !important;
+    top: 0;
+    z-index: 1500 !important; /* Mayor z-index para asegurar que esté por encima */
+    width: 100%;
 }
 .navbar-brand, .navbar-nav .nav-link, .navbar-text a {
     color: #003366 !important; /* Azul oscuro */
@@ -113,8 +117,11 @@ html, body {
     flex-direction: column; /* Configura el flujo de elementos en columna */
 }
 
- main {
+main {
     flex: 1; /* Hace que el contenido principal ocupe todo el espacio disponible */
+    position: relative;
+    z-index: 1;
+    padding-top: 1rem; /* Espacio para evitar solapamiento con navbar */
 } 
 
 footer {
@@ -227,4 +234,186 @@ thead input {
     .hero h1 {
         font-size: 1.5rem;
     }
+}
+
+/* Ajustes de z-index para evitar solapamientos */
+.container-fluid {
+    position: relative !important;
+    z-index: 10 !important;
+    padding-top: 20px !important;
+}
+
+.card {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 10 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Botones de acción */
+.btn-action {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0;
+    margin: 3px;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+
+/* Correcciones para pantallas pequeñas */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Corrección específica para las distribuciones */
+.card.shadow-sm.mb-4 {
+    z-index: 10 !important;
+}
+
+/* Mejoras para vista de detalle de correspondencia */
+.detail-page {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.detail-page .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden !important;
+    margin-bottom: 20px;
+    height: auto !important;
+    border: none !important;
+}
+
+.detail-page .card-header {
+    padding: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: none;
+}
+
+.detail-page .card-body {
+    padding: 1.5rem;
+    display: block !important;
+}
+
+.detail-page h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2d3748;
+}
+
+.detail-page .badge {
+    padding: 0.5rem 0.8rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Mejoras para la información de distribuciones */
+.list-group-item {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0 !important;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-item p {
+    margin-bottom: 0.5rem;
+}
+
+/* Mejorando Layout en dispositivos móviles */
+@media (max-width: 991px) {
+    .detail-page .col-lg-8,
+    .detail-page .col-lg-4 {
+        width: 100%;
+    }
+    
+    .detail-page .card {
+        height: auto !important;
+        margin-bottom: 15px;
+    }
+    
+    .detail-page .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Ajustes para los badges de estado */
+.badge {
+    display: inline-block;
+    padding: 0.4em 0.65em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    margin-right: 0.25rem;
+}
+
+/* Mejoras específicas para el detalle de correspondencia */
+.detail-page .row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+}
+
+.detail-page .card-footer {
+    background-color: transparent;
+    border-top: 1px solid rgba(0,0,0,.125);
+    padding: 1rem 1.5rem;
+}
+
+/* Mejoras para los adjuntos y distribuciones */
+.detail-page .list-group {
+    border-radius: 0;
+}
+
+.detail-page form .mb-3:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Evitar que los elementos se superpongan */
+.breadcrumb {
+    z-index: 1000;
+    position: relative;
+    background: transparent !important;
+    margin-bottom: 1rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    z-index: 100;
+    position: relative;
 }

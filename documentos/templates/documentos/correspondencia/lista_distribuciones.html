@@ -1,0 +1,203 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+
+{% block title %}Distribuciones de Correspondencia{% endblock %}
+
+{% block header_title %}Distribuciones de Correspondencia{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active">Distribuciones</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-share-alt me-2"></i> Listado de Distribuciones
+            </h3>
+            <div>
+                <a href="{% url 'lista_correspondencia' %}" class="btn btn-outline-secondary btn-sm" aria-label="Volver a correspondencia">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline d-flex flex-wrap gap-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Estado</span>
+                        <select name="estado" class="form-select" aria-label="Filtrar por estado">
+                            <option value="">Todos</option>
+                            <option value="PEN" {% if request.GET.estado == 'PEN' %}selected{% endif %}>Pendientes</option>
+                            <option value="REC" {% if request.GET.estado == 'REC' %}selected{% endif %}>Recibidas</option>
+                            <option value="FIN" {% if request.GET.estado == 'FIN' %}selected{% endif %}>Finalizadas</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Oficina Origen</span>
+                        <select name="oficina_origen" class="form-select" aria-label="Filtrar por oficina origen">
+                            <option value="">Todas</option>
+                            {% for oficina in oficinas %}
+                            <option value="{{ oficina.id }}" {% if request.GET.oficina_origen == oficina.id|stringformat:'i' %}selected{% endif %}>{{ oficina.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Oficina Destino</span>
+                        <select name="oficina_destino" class="form-select" aria-label="Filtrar por oficina destino">
+                            <option value="">Todas</option>
+                            {% for oficina in oficinas %}
+                            <option value="{{ oficina.id }}" {% if request.GET.oficina_destino == oficina.id|stringformat:'i' %}selected{% endif %}>{{ oficina.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" aria-label="Aplicar filtros">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'lista_distribuciones' %}" class="btn btn-outline-secondary btn-sm" aria-label="Limpiar filtros">
+                        <i class="fas fa-broom"></i> Limpiar
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de distribuciones -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" aria-label="Tabla de distribuciones">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Correspondencia</th>
+                        <th scope="col">De</th>
+                        <th scope="col">Para</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if distribuciones %}
+                        {% for dist in distribuciones %}
+                        <tr>
+                            <td>{{ dist.id }}</td>
+                            <td>
+                                <a href="{% url 'detalle_correspondencia' dist.correspondencia.id %}" class="text-decoration-none">
+                                    {{ dist.correspondencia.numero_radicado }}
+                                </a>
+                            </td>
+                            <td>{{ dist.oficina_origen.nombre }}</td>
+                            <td>{{ dist.oficina_destino.nombre }}</td>
+                            <td>{{ dist.fecha_distribucion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if dist.estado == 'PEN' %}
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% elif dist.estado == 'REC' %}
+                                <span class="badge bg-primary">Recibida</span>
+                                {% elif dist.estado == 'FIN' %}
+                                <span class="badge bg-success">Finalizada</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Desconocido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Acciones para distribución {{ dist.id }}">
+                                    {% if dist.estado == 'PEN' and request.user.perfilusuario.oficina == dist.oficina_destino %}
+                                    <a href="{% url 'recibir_distribucion' dist.id %}" class="btn btn-sm btn-outline-primary" aria-label="Recibir distribución">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if dist.estado == 'REC' and request.user.perfilusuario.oficina == dist.oficina_destino %}
+                                    <a href="{% url 'finalizar_distribucion' dist.id %}" class="btn btn-sm btn-outline-success" aria-label="Finalizar distribución">
+                                        <i class="fas fa-check-double"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if perms.documentos.change_distribucioninterna or request.user.is_superuser or request.user.perfilusuario.oficina == dist.oficina_origen %}
+                                    <a href="{% url 'editar_distribucion' dist.id %}" class="btn btn-sm btn-outline-info" aria-label="Editar distribución">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if perms.documentos.delete_distribucioninterna or request.user.is_superuser %}
+                                    <a href="{% url 'eliminar_distribucion' dist.id %}" class="btn btn-sm btn-outline-danger" aria-label="Eliminar distribución">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay distribuciones que coincidan con los criterios seleccionados.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if distribuciones.has_other_pages %}
+        <nav aria-label="Paginación de distribuciones">
+            <ul class="pagination justify-content-center">
+                {% if distribuciones.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ distribuciones.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                </li>
+                {% endif %}
+                
+                {% for num in distribuciones.paginator.page_range %}
+                    {% if distribuciones.number == num %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > distribuciones.number|add:"-3" and num < distribuciones.number|add:"3" %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if distribuciones.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ distribuciones.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ distribuciones.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

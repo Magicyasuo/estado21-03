@@ -15,6 +15,18 @@ from .views import registros_api
 from .views import registros_api_con_id
 from .views import registros_api, ver_documento
 from .views import soporte_view, panel_view, registros_fuid_json
+# Importar las vistas del módulo de correspondencia
+from .views_correspondencia import (
+    lista_correspondencia, crear_correspondencia, detalle_correspondencia,
+    editar_correspondencia, anular_correspondencia, distribuir_correspondencia,
+    lista_contactos, crear_contacto, editar_contacto, detalle_contacto, eliminar_contacto,
+    lista_distribuciones, recibir_distribucion, redistribuir_correspondencia,
+    cargar_subseries_ajax, buscar_contactos_ajax, crear_contacto_ajax,
+    actualizar_campos_tipo_correspondencia, gestionar_ventanilla_unica,
+    eliminar_correspondencia, editar_distribucion, finalizar_distribucion,
+    eliminar_distribucion, agregar_adjunto, eliminar_adjunto,
+    radicar_correspondencia, firmar_correspondencia
+)
 
 
 
@@ -71,6 +83,47 @@ urlpatterns = [
     path('api/registros_api_completo/', views.registros_api_completo, name='registros_api_completo'),
     path('registros_api_con_id/', registros_api_con_id, name='registros_api_con_id'),
     path('fuids/<int:fuid_id>/editar_registro/<int:registro_id>/', views.editar_registro_de_fuid, name='editar_registro_de_fuid'),
+
+    # URLs para el módulo de correspondencia
+    path('correspondencia/', lista_correspondencia, name='lista_correspondencia'),
+    path('correspondencia/crear/', crear_correspondencia, name='crear_correspondencia'),
+    path('correspondencia/<int:pk>/', detalle_correspondencia, name='detalle_correspondencia'),
+    path('correspondencia/<int:pk>/editar/', editar_correspondencia, name='editar_correspondencia'),
+    path('correspondencia/<int:pk>/anular/', anular_correspondencia, name='anular_correspondencia'),
+    path('correspondencia/<int:pk>/distribuir/', distribuir_correspondencia, name='distribuir_correspondencia'),
+    path('correspondencia/<int:pk>/eliminar/', eliminar_correspondencia, name='eliminar_correspondencia'),
+    
+    # URLs para gestión de contactos
+    path('correspondencia/contactos/', lista_contactos, name='lista_contactos'),
+    path('correspondencia/contactos/crear/', crear_contacto, name='crear_contacto'),
+    path('correspondencia/contactos/<int:pk>/editar/', editar_contacto, name='editar_contacto'),
+    path('correspondencia/contactos/<int:pk>/', detalle_contacto, name='detalle_contacto'),
+    path('correspondencia/contactos/<int:pk>/eliminar/', eliminar_contacto, name='eliminar_contacto'),
+    
+    # URLs para distribución y recepción
+    path('correspondencia/distribuciones/', lista_distribuciones, name='lista_distribuciones'),
+    path('correspondencia/distribuciones/<int:pk>/recibir/', recibir_distribucion, name='recibir_distribucion'),
+    path('correspondencia/distribuciones/<int:pk>/redistribuir/', redistribuir_correspondencia, name='redistribuir_correspondencia'),
+    path('correspondencia/distribuciones/<int:pk>/editar/', editar_distribucion, name='editar_distribucion'),
+    path('correspondencia/distribuciones/<int:pk>/finalizar/', finalizar_distribucion, name='finalizar_distribucion'),
+    path('correspondencia/distribuciones/<int:pk>/eliminar/', eliminar_distribucion, name='eliminar_distribucion'),
+
+    # URLs para adjuntos
+    path('correspondencia/<int:pk>/adjuntos/agregar/', agregar_adjunto, name='agregar_adjunto'),
+    path('correspondencia/adjuntos/<int:pk>/eliminar/', eliminar_adjunto, name='eliminar_adjunto'),
+
+    # URLs para funcionalidades AJAX
+    path('correspondencia/ajax/cargar-subseries/', cargar_subseries_ajax, name='cargar_subseries_ajax'),
+    path('correspondencia/ajax/buscar-contactos/', buscar_contactos_ajax, name='buscar_contactos_ajax'),
+    path('correspondencia/ajax/crear-contacto/', crear_contacto_ajax, name='crear_contacto_ajax'),
+    path('correspondencia/ajax/actualizar-campos-tipo/', actualizar_campos_tipo_correspondencia, name='actualizar_campos_tipo_correspondencia'),
+
+    # URLs para administración
+    path('correspondencia/admin/gestionar-ventanilla/', gestionar_ventanilla_unica, name='gestionar_ventanilla_unica'),
+
+    # URLs para radicar y firmar correspondencia
+    path('correspondencia/<int:pk>/radicar/', radicar_correspondencia, name='radicar_correspondencia'),
+    path('correspondencia/<int:pk>/firmar/', firmar_correspondencia, name='firmar_correspondencia'),
 
     
 

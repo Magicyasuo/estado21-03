@@ -332,3 +332,248 @@ class FichaPacienteForm(forms.ModelForm):
         if FichaPaciente.objects.filter(num_identificacion=num_identificacion).exists():
             raise forms.ValidationError("El número de identificación ya está registrado. Por favor, verifica los datos.")
         return num_identificacion
+
+# Formularios para el módulo de correspondencia
+from .models import (
+    TipoDocumentoCorrespondencia, Contacto, Correspondencia,
+    DistribucionInterna, AdjuntoCorrespondencia
+)
+
+
+class ContactoForm(forms.ModelForm):
+    class Meta:
+        model = Contacto
+        exclude = ['creado_por', 'fecha_creacion']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_identificacion': forms.Select(attrs={'class': 'form-select'}),
+            'identificacion': forms.TextInput(attrs={'class': 'form-control'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'correo': forms.EmailInput(attrs={'class': 'form-control'}),
+            'ciudad': forms.TextInput(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class CorrespondenciaForm(forms.ModelForm):
+    """Formulario principal para la creación y edición de correspondencia"""
+    
+    # Campos ocultos iniciales
+    estado = forms.CharField(widget=forms.HiddenInput(), required=False, initial='REC')
+    
+    fecha_documento = forms.DateField(
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={'type': 'date', 'class': 'form-control'}
+        ),
+        input_formats=['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']
+    )
+    
+    fecha_vencimiento = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={'type': 'date', 'class': 'form-control'}
+        ),
+        input_formats=['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']
+    )
+    
+    class Meta:
+        model = Correspondencia
+        exclude = ['radicado', 'creado_por', 'fecha_creacion', 'modificado_por', 
+                  'fecha_modificacion', 'anulado', 'motivo_anulacion', 'estado']
+        widgets = {
+            'tipo_correspondencia': forms.Select(attrs={'class': 'form-select', 'id': 'id_tipo_correspondencia'}),
+            'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
+            'asunto': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'numero_documento': forms.TextInput(attrs={'class': 'form-control'}),
+            'serie_documental': forms.Select(attrs={'class': 'form-select', 'id': 'id_serie_documental'}),
+            'subserie_documental': forms.Select(attrs={'class': 'form-select', 'id': 'id_subserie_documental'}),
+            'remitente_externo': forms.Select(attrs={'class': 'form-select', 'id': 'id_remitente_externo'}),
+            'destinatario_externo': forms.Select(attrs={'class': 'form-select', 'id': 'id_destinatario_externo'}),
+            'oficina_remitente': forms.Select(attrs={'class': 'form-select', 'id': 'id_oficina_remitente'}),
+            'oficina_destinatario': forms.Select(attrs={'class': 'form-select', 'id': 'id_oficina_destinatario'}),
+            'prioridad': forms.Select(attrs={'class': 'form-select'}),
+            'requiere_respuesta': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        usuario = kwargs.pop('usuario', None)
+        super().__init__(*args, **kwargs)
+        
+        # Inicialmente hacemos que algunos campos no sean requeridos
+        # Se validarán según el tipo de correspondencia en el clean()
+        self.fields['remitente_externo'].required = False
+        self.fields['destinatario_externo'].required = False
+        self.fields['oficina_remitente'].required = False
+        self.fields['oficina_destinatario'].required = False
+        
+        # Si tenemos usuario y tiene oficina asociada, la preseleccionamos como remitente
+        if usuario and hasattr(usuario, 'perfil') and usuario.perfil.oficina:
+            self.fields['oficina_remitente'].initial = usuario.perfil.oficina
+        
+        # Configuración dinámica de subseries
+        if 'serie_documental' in self.data:
+            try:
+                serie_id = int(self.data.get('serie_documental'))
+                self.fields['subserie_documental'].queryset = SubserieDocumental.objects.filter(
+                    serie_id=serie_id
+                )
+            except (ValueError, TypeError):
+                self.fields['subserie_documental'].queryset = SubserieDocumental.objects.none()
+        elif self.instance.pk and self.instance.serie_documental:
+            self.fields['subserie_documental'].queryset = SubserieDocumental.objects.filter(
+                serie_id=self.instance.serie_documental.id
+            )
+        else:
+            self.fields['subserie_documental'].queryset = SubserieDocumental.objects.none()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_correspondencia = cleaned_data.get('tipo_correspondencia')
+        
+        if tipo_correspondencia == 'ENT':  # Entrada
+            # Validar remitente externo y oficina destinatario
+            if not cleaned_data.get('remitente_externo'):
+                self.add_error('remitente_externo', 'Para correspondencia de entrada, debe especificar el remitente externo')
+            if not cleaned_data.get('oficina_destinatario'):
+                self.add_error('oficina_destinatario', 'Para correspondencia de entrada, debe especificar la oficina destinataria')
+        
+        elif tipo_correspondencia == 'SAL':  # Salida
+            # Validar oficina remitente y destinatario externo
+            if not cleaned_data.get('oficina_remitente'):
+                self.add_error('oficina_remitente', 'Para correspondencia de salida, debe especificar la oficina remitente')
+            if not cleaned_data.get('destinatario_externo'):
+                self.add_error('destinatario_externo', 'Para correspondencia de salida, debe especificar el destinatario externo')
+        
+        elif tipo_correspondencia == 'INT':  # Interna
+            # Validar oficina remitente y destinatario
+            if not cleaned_data.get('oficina_remitente'):
+                self.add_error('oficina_remitente', 'Para correspondencia interna, debe especificar la oficina remitente')
+            if not cleaned_data.get('oficina_destinatario'):
+                self.add_error('oficina_destinatario', 'Para correspondencia interna, debe especificar la oficina destinataria')
+        
+        return cleaned_data
+
+
+class AdjuntoCorrespondenciaForm(forms.ModelForm):
+    class Meta:
+        model = AdjuntoCorrespondencia
+        fields = ['archivo', 'descripcion']
+        widgets = {
+            'archivo': forms.FileInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class DistribucionInternaForm(forms.ModelForm):
+    class Meta:
+        model = DistribucionInterna
+        fields = ['oficina_destino', 'instrucciones']
+        widgets = {
+            'oficina_destino': forms.Select(attrs={'class': 'form-select'}),
+            'instrucciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class RecepcionDistribucionForm(forms.ModelForm):
+    """Formulario para registrar la recepción de una distribución"""
+    class Meta:
+        model = DistribucionInterna
+        fields = ['estado', 'observaciones_recepcion']
+        widgets = {
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+            'observaciones_recepcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        
+
+class BusquedaCorrespondenciaForm(forms.Form):
+    """Formulario para búsqueda avanzada de correspondencia"""
+    radicado = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    asunto = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    tipo_correspondencia = forms.ChoiceField(
+        required=False, 
+        choices=[('', '---')] + list(Correspondencia.TIPO_CORRESPONDENCIA_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    fecha_desde = forms.DateField(
+        required=False,
+        label="Fecha desde",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    fecha_hasta = forms.DateField(
+        required=False,
+        label="Fecha hasta",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    estado = forms.ChoiceField(
+        required=False, 
+        choices=[('', '---')] + list(Correspondencia.ESTADO_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    prioridad = forms.ChoiceField(
+        required=False, 
+        choices=[('', '---')] + list(Correspondencia.PRIORIDAD_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    serie_documental = forms.ModelChoiceField(
+        required=False,
+        queryset=SerieDocumental.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_busqueda_serie'})
+    )
+    subserie_documental = forms.ModelChoiceField(
+        required=False,
+        queryset=SubserieDocumental.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_busqueda_subserie'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Configuración dinámica de subseries para búsqueda
+        if 'serie_documental' in self.data:
+            try:
+                serie_id = int(self.data.get('serie_documental'))
+                self.fields['subserie_documental'].queryset = SubserieDocumental.objects.filter(
+                    serie_id=serie_id
+                )
+            except (ValueError, TypeError):
+                self.fields['subserie_documental'].queryset = SubserieDocumental.objects.none()
+        else:
+            self.fields['subserie_documental'].queryset = SubserieDocumental.objects.none()
+
+
+class RadicacionForm(forms.Form):
+    """Formulario para radicar correspondencia"""
+    observaciones = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False,
+        help_text="Observaciones opcionales sobre la radicación"
+    )
+
+
+class FirmaElectronicaForm(forms.Form):
+    """Formulario para firma electrónica de correspondencia"""
+    certificado = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=True,
+        help_text="Pegue aquí el certificado de firma digital"
+    )
+    
+    pin = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=True,
+        help_text="PIN de seguridad para la firma"
+    )
+    
+    def clean_pin(self):
+        """Validación del PIN (aquí podrías implementar la validación real)"""
+        pin = self.cleaned_data.get('pin')
+        # En un entorno real, aquí validarías el PIN contra un servicio de firma electrónica
+        if len(pin) < 4:
+            raise forms.ValidationError("El PIN debe tener al menos 4 caracteres")
+        return pin

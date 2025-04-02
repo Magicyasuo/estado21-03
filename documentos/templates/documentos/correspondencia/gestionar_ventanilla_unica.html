@@ -1,0 +1,141 @@
+{% extends "adminlte/base.html" %}
+{% load static %}
+
+{% block title %}Gestionar Responsables de Ventanilla Única{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Responsables de Ventanilla Única</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'welcome' %}">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_correspondencia' %}">Correspondencia</a></li>
+                    <li class="breadcrumb-item active">Gestionar Ventanilla Única</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Usuarios con acceso de Ventanilla Única</h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Los usuarios designados como responsables de Ventanilla Única tendrán permisos especiales
+                            para crear, ver, editar y gestionar toda la correspondencia en el sistema.
+                        </p>
+                        
+                        {% if messages %}
+                        <div class="messages">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Formulario para añadir usuarios -->
+                        <form method="post" class="mb-4">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <select name="usuario_id" class="form-control">
+                                    <option value="">Seleccionar usuario...</option>
+                                    {% for usuario in todos_usuarios %}
+                                    <option value="{{ usuario.id }}">{{ usuario.username }} ({{ usuario.get_full_name|default:"-" }})</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="hidden" name="accion" value="agregar">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Añadir como Responsable
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Lista de usuarios actuales -->
+                        {% if usuarios_ventanilla %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Nombre completo</th>
+                                        <th>Correo</th>
+                                        <th>Oficina</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for usuario in usuarios_ventanilla %}
+                                    <tr>
+                                        <td>{{ usuario.username }}</td>
+                                        <td>{{ usuario.get_full_name }}</td>
+                                        <td>{{ usuario.email }}</td>
+                                        <td>
+                                            {% if usuario.perfil.oficina %}
+                                            {{ usuario.perfil.oficina }}
+                                            {% else %}
+                                            <span class="text-muted">Sin oficina asignada</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="usuario_id" value="{{ usuario.id }}">
+                                                <input type="hidden" name="accion" value="quitar">
+                                                <button type="submit" class="btn btn-danger btn-sm" 
+                                                        onclick="return confirm('¿Está seguro de quitar los permisos de ventanilla única a este usuario?')">
+                                                    <i class="fas fa-trash"></i> Quitar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            No hay usuarios designados como responsables de ventanilla única.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer">
+                        <a href="{% url 'lista_correspondencia' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('select[name="usuario_id"]').select2({
+            placeholder: "Seleccionar usuario...",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %} 

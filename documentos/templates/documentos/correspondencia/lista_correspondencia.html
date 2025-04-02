@@ -1,0 +1,289 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+{% load static %}
+
+{% block title %}Lista de Correspondencia{% endblock %}
+
+{% block header_title %}Listado de Correspondencia{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active">Lista de Correspondencia</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+
+            
+            <div class="card-body">
+                <!-- Filtros de búsqueda -->
+                <div class="mb-3">
+                    <a class="btn btn-info btn-sm" data-toggle="collapse" href="#collapseFilters" role="button" aria-expanded="false">
+                        <i class="fas fa-filter"></i> Filtros de búsqueda
+                    </a>
+                    
+                    <div class="collapse mt-3" id="collapseFilters">
+                        <div class="card card-body">
+                            <form method="get" id="search-form">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.radicado.id_for_label }}">Radicado</label>
+                                            {{ form.radicado }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.asunto.id_for_label }}">Asunto</label>
+                                            {{ form.asunto }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.tipo_correspondencia.id_for_label }}">Tipo</label>
+                                            {{ form.tipo_correspondencia }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.estado.id_for_label }}">Estado</label>
+                                            {{ form.estado }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.fecha_desde.id_for_label }}">Fecha desde</label>
+                                            {{ form.fecha_desde }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.fecha_hasta.id_for_label }}">Fecha hasta</label>
+                                            {{ form.fecha_hasta }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.prioridad.id_for_label }}">Prioridad</label>
+                                            {{ form.prioridad }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.serie_documental.id_for_label }}">Serie</label>
+                                            {{ form.serie_documental }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{ form.subserie_documental.id_for_label }}">Subserie</label>
+                                            {{ form.subserie_documental }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-                                                                                                              text-right">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i> Buscar
+                                        </button>
+                                        <a href="{% url 'lista_correspondencia' %}" class="btn btn-secondary">
+                                            <i class="fas fa-broom"></i> Limpiar
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+
+                
+                <!-- Tabla de correspondencia -->
+                {% if correspondencia_list %}
+                <div class="table-responsive" style="width: 100%; margin: 0;">
+                    <table class="table table-bordered table-striped table-hover w-100">
+                        <thead>
+                            <tr>
+                                <th style="width: 8%">Radicado</th>
+                                <th style="width: 9%">Fecha</th>
+                                <th style="width: 7%">Tipo</th>
+                                <th style="width: 24%">Asunto</th>
+                                <th style="width: 22%">Remitente/Destinatario</th>
+                                <th style="width: 10%">Estado</th>
+                                <th style="width: 20%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for correspondencia in correspondencia_list %}
+                            <tr>
+                                <td>{{ correspondencia.radicado }}</td>
+                                <td>{{ correspondencia.fecha_radicacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if correspondencia.tipo_correspondencia == 'ENT' %}
+                                        <span class="badge badge-success">Entrada</span>
+                                    {% elif correspondencia.tipo_correspondencia == 'SAL' %}
+                                        <span class="badge badge-info">Salida</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Interna</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ correspondencia.asunto }}</td>
+                                <td>
+                                    {% if correspondencia.tipo_correspondencia == 'ENT' %}
+                                        <strong>De:</strong> {{ correspondencia.remitente_externo }}
+                                        <br>
+                                        <strong>Para:</strong> {{ correspondencia.oficina_destinatario }}
+                                    {% elif correspondencia.tipo_correspondencia == 'SAL' %}
+                                        <strong>De:</strong> {{ correspondencia.oficina_remitente }}
+                                        <br>
+                                        <strong>Para:</strong> {{ correspondencia.destinatario_externo }}
+                                    {% else %}
+                                        <strong>De:</strong> {{ correspondencia.oficina_remitente }}
+                                        <br>
+                                        <strong>Para:</strong> {{ correspondencia.oficina_destinatario }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if correspondencia.estado == 'RAD' %}
+                                        <span class="badge badge-secondary">Radicado</span>
+                                    {% elif correspondencia.estado == 'DIS' %}
+                                        <span class="badge badge-primary">Distribuido</span>
+                                    {% elif correspondencia.estado == 'TRA' %}
+                                        <span class="badge badge-info">En Trámite</span>
+                                    {% elif correspondencia.estado == 'RES' %}
+                                        <span class="badge badge-success">Respondido</span>
+                                    {% elif correspondencia.estado == 'ARC' %}
+                                        <span class="badge badge-dark">Archivado</span>
+                                    {% elif correspondencia.estado == 'ANU' %}
+                                        <span class="badge badge-danger">Anulado</span>
+                                    {% endif %}
+                                    
+                                    {% if correspondencia.prioridad == 'URG' %}
+                                        <span class="badge badge-danger">Urgente</span>
+                                    {% elif correspondencia.prioridad == 'ALT' %}
+                                        <span class="badge badge-warning">Alta</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap justify-content-center gap-1">
+                                        <a href="{% url 'detalle_correspondencia' correspondencia.pk %}" class="btn btn-info btn-sm m-1" title="Ver detalles" aria-label="Ver detalles de correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if perms.documentos.change_correspondencia or correspondencia.creado_por == request.user %}
+                                        <a href="{% url 'editar_correspondencia' correspondencia.pk %}" class="btn btn-warning btn-sm m-1" title="Editar" aria-label="Editar correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if not correspondencia.anulado and perms.documentos.distribute_correspondencia or correspondencia.creado_por == request.user %}
+                                        <a href="{% url 'distribuir_correspondencia' correspondencia.pk %}" class="btn btn-primary btn-sm m-1" title="Distribuir" aria-label="Distribuir correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-share"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if correspondencia.estado == 'REC' and perms.documentos.change_correspondencia %}
+                                        <a href="{% url 'radicar_correspondencia' correspondencia.pk %}" class="btn btn-success btn-sm m-1" title="Radicar" aria-label="Radicar correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-stamp"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if correspondencia.estado == 'RAD' and perms.documentos.change_correspondencia %}
+                                        <a href="{% url 'firmar_correspondencia' correspondencia.pk %}" class="btn btn-secondary btn-sm m-1" title="Firmar" aria-label="Firmar correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-signature"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.documentos.delete_correspondencia or correspondencia.creado_por == request.user %}
+                                        <a href="{% url 'anular_correspondencia' correspondencia.pk %}" class="btn btn-danger btn-sm m-1" title="Anular" aria-label="Anular correspondencia {{ correspondencia.radicado }}">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginación -->
+                {% if is_paginated %}
+                <div class="mt-3">
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page=1" aria-label="Primera página">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Página anterior">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                    <a class="page-link" href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_obj.next_page_number }}" aria-label="Página siguiente">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Última página">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No se encontraron registros de correspondencia.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Cargar subseries cuando cambia la serie
+        $('#id_serie_documental').change(function() {
+            var serieId = $(this).val();
+            if (serieId) {
+                $.ajax({
+                    url: '{% url "cargar_subseries_ajax" %}',
+                    data: {
+                        'serie_id': serieId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        var options = '<option value="">---------</option>';
+                        $.each(data.subseries, function(index, subserie) {
+                            options += '<option value="' + subserie.id + '">' + subserie.codigo + ' - ' + subserie.nombre + '</option>';
+                        });
+                        $('#id_subserie_documental').html(options);
+                    }
+                });
+            } else {
+                $('#id_subserie_documental').html('<option value="">---------</option>');
+            }
+        });
+    });
+</script>
+{% endblock %} 

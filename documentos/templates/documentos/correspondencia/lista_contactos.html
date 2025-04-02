@@ -1,0 +1,183 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+
+{% block title %}Directorio de Contactos{% endblock %}
+
+{% block header_title %}Directorio de Contactos{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active">Contactos</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-address-book me-2"></i> Directorio de Contactos
+            </h3>
+            <div>
+                <a href="{% url 'crear_contacto' %}" class="btn btn-primary btn-sm" aria-label="Crear nuevo contacto">
+                    <i class="fas fa-plus"></i> Nuevo Contacto
+                </a>
+                <a href="{% url 'lista_correspondencia' %}" class="btn btn-outline-secondary btn-sm" aria-label="Volver a correspondencia">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <form method="get" class="form-inline d-flex flex-wrap gap-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Tipo</span>
+                        <select name="tipo" class="form-select" aria-label="Filtrar por tipo">
+                            <option value="">Todos</option>
+                            <option value="PER" {% if request.GET.tipo == 'PER' %}selected{% endif %}>Persona</option>
+                            <option value="ENT" {% if request.GET.tipo == 'ENT' %}selected{% endif %}>Entidad</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Buscar</span>
+                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="Nombre, identificación..." aria-label="Buscar contacto">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" aria-label="Aplicar filtros">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'lista_contactos' %}" class="btn btn-outline-secondary btn-sm" aria-label="Limpiar filtros">
+                        <i class="fas fa-broom"></i> Limpiar
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de contactos -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" aria-label="Tabla de contactos">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Identificación</th>
+                        <th scope="col">Teléfono</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Ciudad</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if contactos %}
+                        {% for contacto in contactos %}
+                        <tr>
+                            <td>{{ contacto.id }}</td>
+                            <td>
+                                {% if contacto.tipo == 'PER' %}
+                                <span class="badge bg-info">Persona</span>
+                                {% elif contacto.tipo == 'ENT' %}
+                                <span class="badge bg-primary">Entidad</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Otro</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ contacto.nombre }}</td>
+                            <td>{{ contacto.tipo_identificacion }}: {{ contacto.identificacion }}</td>
+                            <td>{{ contacto.telefono }}</td>
+                            <td>
+                                {% if contacto.correo %}
+                                <a href="mailto:{{ contacto.correo }}" class="text-decoration-none">{{ contacto.correo }}</a>
+                                {% else %}
+                                <span class="text-muted">No disponible</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ contacto.ciudad|default:"No especificada" }}</td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Acciones para contacto {{ contacto.id }}">
+                                    <a href="{% url 'detalle_contacto' contacto.id %}" class="btn btn-sm btn-outline-primary" aria-label="Ver detalles del contacto">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if perms.documentos.change_contacto or request.user.is_superuser %}
+                                    <a href="{% url 'editar_contacto' contacto.id %}" class="btn btn-sm btn-outline-info" aria-label="Editar contacto">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.documentos.delete_contacto or request.user.is_superuser %}
+                                    <a href="{% url 'eliminar_contacto' contacto.id %}" class="btn btn-sm btn-outline-danger" aria-label="Eliminar contacto">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">No hay contactos que coincidan con los criterios seleccionados.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if contactos.has_other_pages %}
+        <nav aria-label="Paginación de contactos">
+            <ul class="pagination justify-content-center">
+                {% if contactos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contactos.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                </li>
+                {% endif %}
+                
+                {% for num in contactos.paginator.page_range %}
+                    {% if contactos.number == num %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > contactos.number|add:"-3" and num < contactos.number|add:"3" %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if contactos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contactos.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contactos.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

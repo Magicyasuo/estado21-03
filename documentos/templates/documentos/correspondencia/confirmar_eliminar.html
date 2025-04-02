@@ -1,0 +1,52 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block header_title %}Confirmar Eliminación{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active">Confirmar Eliminación</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        <h3 class="card-title mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i> ¿Está seguro que desea eliminar este {{ tipo_objeto }}?
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <p><strong>¡Advertencia!</strong> Esta acción no se puede deshacer. Al eliminar este {{ tipo_objeto }}, se perderán todos los datos asociados.</p>
+        </div>
+        
+        <div class="my-4">
+            {% if tipo_objeto == 'correspondencia' %}
+            <p>Está a punto de eliminar la correspondencia con número de radicado: <strong>{{ objeto.numero_radicado }}</strong></p>
+            <p>Asunto: {{ objeto.asunto }}</p>
+            {% elif tipo_objeto == 'contacto' %}
+            <p>Está a punto de eliminar el contacto: <strong>{{ objeto.nombre }}</strong></p>
+            <p>Identificación: {{ objeto.tipo_identificacion }} {{ objeto.identificacion }}</p>
+            {% elif tipo_objeto == 'distribución' %}
+            <p>Está a punto de eliminar la distribución de correspondencia: <strong>{{ objeto.correspondencia.numero_radicado }}</strong></p>
+            <p>De: {{ objeto.oficina_origen.nombre }} &rarr; Para: {{ objeto.oficina_destino.nombre }}</p>
+            {% elif tipo_objeto == 'adjunto' %}
+            <p>Está a punto de eliminar el archivo adjunto: <strong>{{ objeto.nombre }}</strong></p>
+            <p>De la correspondencia: {{ objeto.correspondencia.numero_radicado }}</p>
+            {% else %}
+            <p>Está a punto de eliminar este elemento.</p>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="javascript:history.back()" class="btn btn-outline-secondary" aria-label="Cancelar y volver atrás">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-danger" aria-label="Confirmar eliminación">
+                <i class="fas fa-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

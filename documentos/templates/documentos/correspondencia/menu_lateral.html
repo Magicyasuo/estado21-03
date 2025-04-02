@@ -1,0 +1,50 @@
+{% load static %}
+
+<li class="nav-header">GESTIÓN DOCUMENTAL</li>
+
+<!-- Correspondencia -->
+<li class="nav-item has-treeview {% if 'correspondencia' in request.path %}menu-open{% endif %}">
+    <a href="#" class="nav-link {% if 'correspondencia' in request.path %}active{% endif %}">
+        <i class="nav-icon fas fa-envelope"></i>
+        <p>
+            Correspondencia
+            <i class="right fas fa-angle-left"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'lista_correspondencia' %}" class="nav-link {% if request.path == '/documentos/correspondencia/' %}active{% endif %}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Ver Correspondencia</p>
+            </a>
+        </li>
+        {% if perms.documentos.add_correspondencia %}
+        <li class="nav-item">
+            <a href="{% url 'crear_correspondencia' %}" class="nav-link {% if request.path == '/documentos/correspondencia/crear/' %}active{% endif %}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Nueva Correspondencia</p>
+            </a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <a href="{% url 'lista_distribuciones' %}" class="nav-link {% if request.path == '/documentos/correspondencia/distribuciones/' %}active{% endif %}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Distribuciones</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'lista_contactos' %}" class="nav-link {% if request.path == '/documentos/correspondencia/contactos/' %}active{% endif %}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Contactos</p>
+            </a>
+        </li>
+        {% if perms.auth.change_user %}
+        <li class="nav-item">
+            <a href="{% url 'gestionar_ventanilla_unica' %}" class="nav-link {% if request.path == '/documentos/correspondencia/admin/gestionar-ventanilla/' %}active{% endif %}">
+                <i class="fas fa-user-shield nav-icon"></i>
+                <p>Gestionar Ventanilla</p>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</li> 

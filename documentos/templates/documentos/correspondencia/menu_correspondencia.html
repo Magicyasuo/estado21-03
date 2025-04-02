@@ -1,0 +1,169 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm rounded" role="navigation" aria-label="Menú de correspondencia">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'lista_correspondencia' %}">
+            <i class="fas fa-envelope-open-text text-primary me-2"></i>
+            <span class="fw-bold">Gestión de Correspondencia</span>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuCorrespondencia" 
+                aria-controls="menuCorrespondencia" aria-expanded="false" aria-label="Mostrar menú">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="menuCorrespondencia">
+            <ul class="navbar-nav me-auto">
+                <!-- Gestión de Correspondencia -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="correspondenciaDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-envelope"></i> Correspondencia
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="correspondenciaDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_correspondencia' %}">
+                                <i class="fas fa-list-alt"></i> Ver todas
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'crear_correspondencia' %}">
+                                <i class="fas fa-plus-circle"></i> Crear nueva
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Filtrar por tipo:</h6></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_correspondencia' %}?tipo_correspondencia=ENT">
+                                <i class="fas fa-inbox"></i> Entrada
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_correspondencia' %}?tipo_correspondencia=SAL">
+                                <i class="fas fa-paper-plane"></i> Salida
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_correspondencia' %}?tipo_correspondencia=INT">
+                                <i class="fas fa-exchange-alt"></i> Interna
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <!-- Distribuciones -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="distribucionesDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-share-alt"></i> Distribuciones
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="distribucionesDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_distribuciones' %}">
+                                <i class="fas fa-list"></i> Todas las distribuciones
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Filtrar por estado:</h6></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_distribuciones' %}?estado=PEN">
+                                <i class="fas fa-clock"></i> Pendientes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_distribuciones' %}?estado=REC">
+                                <i class="fas fa-check"></i> Recibidas
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'lista_distribuciones' %}?estado=FIN">
+                                <i class="fas fa-check-double"></i> Finalizadas
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <!-- Contactos -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lista_contactos' %}">
+                        <i class="fas fa-address-book"></i> Contactos
+                    </a>
+                </li>
+                
+                <!-- Administración (solo si es admin o tiene permisos de ventanilla única) -->
+                {% if perms.documentos.can_manage_ventanilla_unica or user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'gestionar_ventanilla_unica' %}">
+                        <i class="fas fa-cog"></i> Administración
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <!-- Botones rápidos (lado derecho) -->
+            <div class="d-flex">
+                <a href="{% url 'crear_correspondencia' %}" class="btn btn-success btn-sm m-1" aria-label="Crear nueva correspondencia">
+                    <i class="fas fa-plus"></i> Nueva
+                </a>
+                <a href="{% url 'welcome' %}" class="btn btn-secondary btn-sm m-1" aria-label="Volver al inicio">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Dashboard de acceso rápido -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card h-100 shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-envelope-open text-primary"></i><br>
+                    Correspondencia
+                </h5>
+                <p class="card-text">Gestión de documentos entrantes, salientes e internos</p>
+                <a href="{% url 'lista_correspondencia' %}" class="btn btn-outline-primary btn-sm">Acceder</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card h-100 shadow-sm border-success">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-share-alt text-success"></i><br>
+                    Distribuciones
+                </h5>
+                <p class="card-text">Seguimiento de documentos entre departamentos</p>
+                <a href="{% url 'lista_distribuciones' %}" class="btn btn-outline-success btn-sm">Acceder</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card h-100 shadow-sm border-info">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-address-card text-info"></i><br>
+                    Contactos
+                </h5>
+                <p class="card-text">Directorio de remitentes y destinatarios</p>
+                <a href="{% url 'lista_contactos' %}" class="btn btn-outline-info btn-sm">Acceder</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card h-100 shadow-sm border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-plus-circle text-warning"></i><br>
+                    Crear nuevo
+                </h5>
+                <p class="card-text">Registrar nueva correspondencia en el sistema</p>
+                <a href="{% url 'crear_correspondencia' %}" class="btn btn-outline-warning btn-sm">Crear</a>
+            </div>
+        </div>
+    </div>
+</div> 

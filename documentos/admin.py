@@ -10,6 +10,11 @@ from django.contrib.auth.models import User
 from .models import PerfilUsuario
 from .models import Documento
 
+# Registro de modelos de correspondencia
+from .models import (
+    TipoDocumentoCorrespondencia, Contacto, Correspondencia,
+    DistribucionInterna, AdjuntoCorrespondencia
+)
 
 # 2) Definir un inline para mostrar/editar PerfilUsuario dentro del formulario de User
 class PerfilUsuarioInline(admin.StackedInline):
@@ -162,3 +167,121 @@ class DocumentoAdmin(admin.ModelAdmin):
 # class PerfilUsuarioAdmin(admin.ModelAdmin):
 #     list_display = ('user', 'oficina')
 #     search_fields = ('user__username', 'oficina__nombre')
+
+@admin.register(TipoDocumentoCorrespondencia)
+class TipoDocumentoCorrespondenciaAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'nombre', 'activo')
+    search_fields = ('codigo', 'nombre')
+    list_filter = ('activo',)
+
+
+@admin.register(Contacto)
+class ContactoAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'tipo', 'tipo_identificacion', 'identificacion', 'correo', 'activo')
+    list_filter = ('tipo', 'tipo_identificacion', 'activo')
+    search_fields = ('nombre', 'identificacion', 'correo')
+    date_hierarchy = 'fecha_creacion'
+    fieldsets = (
+        ('Información básica', {
+            'fields': ('tipo', 'nombre', 'tipo_identificacion', 'identificacion', 'activo')
+        }),
+        ('Información de contacto', {
+            'fields': ('direccion', 'telefono', 'correo', 'ciudad')
+        }),
+        ('Información adicional', {
+            'fields': ('observaciones',),
+            'classes': ('collapse',),
+        }),
+    )
+    readonly_fields = ('creado_por', 'fecha_creacion')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Si es un nuevo registro
+            obj.creado_por = request.user
+        obj.save()
+
+
+class AdjuntoCorrespondenciaInline(admin.TabularInline):
+    model = AdjuntoCorrespondencia
+    extra = 1
+    fields = ('archivo', 'descripcion', 'subido_por', 'fecha_carga')
+    readonly_fields = ('subido_por', 'fecha_carga')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Si es un nuevo registro
+            obj.subido_por = request.user
+        obj.save()
+
+
+class DistribucionInternaInline(admin.TabularInline):
+    model = DistribucionInterna
+    extra = 1
+    fields = ('oficina_origen', 'oficina_destino', 'instrucciones', 'estado', 
+              'recibido_por', 'fecha_recepcion')
+    readonly_fields = ('recibido_por', 'fecha_recepcion')
+
+
+@admin.register(Correspondencia)
+class CorrespondenciaAdmin(admin.ModelAdmin):
+    list_display = ('radicado', 'asunto', 'tipo_correspondencia', 'fecha_radicacion', 'estado')
+    list_filter = ('tipo_correspondencia', 'estado', 'prioridad', 'fecha_radicacion')
+    search_fields = ('radicado', 'asunto', 'descripcion')
+    date_hierarchy = 'fecha_radicacion'
+    readonly_fields = ('radicado', 'creado_por', 'fecha_creacion', 'modificado_por', 'fecha_modificacion')
+    
+    fieldsets = (
+        ('Información básica', {
+            'fields': ('radicado', 'tipo_correspondencia', 'tipo_documento', 'asunto', 'descripcion')
+        }),
+        ('Documento', {
+            'fields': ('fecha_documento', 'numero_documento')
+        }),
+        ('Clasificación documental', {
+            'fields': ('serie_documental', 'subserie_documental')
+        }),
+        ('Remitente/Destinatario', {
+            'fields': ('remitente_externo', 'destinatario_externo', 'oficina_remitente', 'oficina_destinatario')
+        }),
+        ('Estado y seguimiento', {
+            'fields': ('estado', 'prioridad', 'requiere_respuesta', 'fecha_vencimiento', 'anulado', 'motivo_anulacion')
+        }),
+        ('Información de creación', {
+            'fields': ('creado_por', 'fecha_creacion', 'modificado_por', 'fecha_modificacion'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    inlines = [AdjuntoCorrespondenciaInline, DistribucionInternaInline]
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Si es un nuevo registro
+            obj.creado_por = request.user
+        else:
+            obj.modificado_por = request.user
+        obj.save()
+    
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, AdjuntoCorrespondencia) and not instance.pk:
+                instance.subido_por = request.user
+            if isinstance(instance, DistribucionInterna) and not instance.pk:
+                instance.creado_por = request.user
+            instance.save()
+        formset.save_m2m()
+
+
+@admin.register(DistribucionInterna)
+class DistribucionInternaAdmin(admin.ModelAdmin):
+    list_display = ('correspondencia', 'oficina_origen', 'oficina_destino', 
+                   'fecha_distribucion', 'estado')
+    list_filter = ('estado', 'fecha_distribucion')
+    search_fields = ('correspondencia__radicado', 'correspondencia__asunto', 
+                     'oficina_origen__nombre', 'oficina_destino__nombre')
+    date_hierarchy = 'fecha_distribucion'
+    readonly_fields = ('creado_por', 'fecha_distribucion')
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Si es un nuevo registro
+            obj.creado_por = request.user
+        obj.save()

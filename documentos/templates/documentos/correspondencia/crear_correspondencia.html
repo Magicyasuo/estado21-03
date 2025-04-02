@@ -1,0 +1,534 @@
+{% extends "documentos/correspondencia/base_correspondencia.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block header_title %}{{ titulo }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active">{{ titulo }}</li>
+{% endblock %}
+
+{% block correspondencia_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h3 class="card-title">{{ titulo }}</h3>
+            </div>
+            
+            <form method="post" id="correspondencia_form">
+                {% csrf_token %}
+                
+                <div class="card-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Por favor corrija los siguientes errores:</h4>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.tipo_correspondencia.id_for_label }}" class="form-label">Tipo de Correspondencia*</label>
+                                {{ form.tipo_correspondencia.errors }}
+                                {{ form.tipo_correspondencia }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">Tipo de Documento*</label>
+                                {{ form.tipo_documento.errors }}
+                                {{ form.tipo_documento }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.fecha_documento.id_for_label }}" class="form-label">Fecha del Documento*</label>
+                                {{ form.fecha_documento.errors }}
+                                {{ form.fecha_documento }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.asunto.id_for_label }}" class="form-label">Asunto*</label>
+                                {{ form.asunto.errors }}
+                                {{ form.asunto }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.numero_documento.id_for_label }}" class="form-label">Número de Documento</label>
+                                {{ form.numero_documento.errors }}
+                                {{ form.numero_documento }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
+                        {{ form.descripcion.errors }}
+                        {{ form.descripcion }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.serie_documental.id_for_label }}" class="form-label">Serie Documental*</label>
+                                {{ form.serie_documental.errors }}
+                                {{ form.serie_documental }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.subserie_documental.id_for_label }}" class="form-label">Subserie Documental*</label>
+                                {{ form.subserie_documental.errors }}
+                                {{ form.subserie_documental }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campos dinámicos según el tipo de correspondencia -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Remitente / Destinatario</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Campos para correspondencia entrante -->
+                            <div id="entrada_fields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.remitente_externo.id_for_label }}" class="form-label">Remitente Externo*</label>
+                                            {{ form.remitente_externo.errors }}
+                                            <div class="input-group">
+                                                {{ form.remitente_externo }}
+                                                <button type="button" class="btn btn-outline-primary" id="btn_nuevo_remitente" aria-label="Crear nuevo remitente">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.oficina_destinatario.id_for_label }}" class="form-label">Oficina Destinataria*</label>
+                                            {{ form.oficina_destinatario.errors }}
+                                            {{ form.oficina_destinatario }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos para correspondencia saliente -->
+                            <div id="salida_fields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.oficina_remitente.id_for_label }}" class="form-label">Oficina Remitente*</label>
+                                            {{ form.oficina_remitente.errors }}
+                                            {{ form.oficina_remitente }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.destinatario_externo.id_for_label }}" class="form-label">Destinatario Externo*</label>
+                                            {{ form.destinatario_externo.errors }}
+                                            <div class="input-group">
+                                                {{ form.destinatario_externo }}
+                                                <button type="button" class="btn btn-outline-primary" id="btn_nuevo_destinatario" aria-label="Crear nuevo destinatario">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos para correspondencia interna -->
+                            <div id="interna_fields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.oficina_remitente.id_for_label }}" class="form-label">Oficina Remitente*</label>
+                                            {{ form.oficina_remitente.errors }}
+                                            {{ form.oficina_remitente }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.oficina_destinatario.id_for_label }}" class="form-label">Oficina Destinataria*</label>
+                                            {{ form.oficina_destinatario.errors }}
+                                            {{ form.oficina_destinatario }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Información Adicional</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.prioridad.id_for_label }}" class="form-label">Prioridad</label>
+                                        {{ form.prioridad.errors }}
+                                        {{ form.prioridad }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <div class="form-check mt-4">
+                                            {{ form.requiere_respuesta }}
+                                            <label class="form-check-label" for="{{ form.requiere_respuesta.id_for_label }}">
+                                                Requiere Respuesta
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.fecha_vencimiento.id_for_label }}" class="form-label">Fecha de Vencimiento</label>
+                                        {{ form.fecha_vencimiento.errors }}
+                                        {{ form.fecha_vencimiento }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{% url 'lista_correspondencia' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo contacto -->
+<div class="modal fade" id="contactoModal" tabindex="-1" role="dialog" aria-labelledby="contactoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactoModalLabel">Nuevo Contacto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="contactoForm">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="id_tipo" class="form-label">Tipo de Contacto*</label>
+                                <select name="tipo" id="id_tipo" class="form-control" required>
+                                    <option value="NAT">Persona Natural</option>
+                                    <option value="JUR">Persona Jurídica</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label for="id_nombre" class="form-label">Nombre*</label>
+                                <input type="text" name="nombre" id="id_nombre" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="id_tipo_identificacion" class="form-label">Tipo de Identificación</label>
+                                <select name="tipo_identificacion" id="id_tipo_identificacion" class="form-control">
+                                    <option value="">Seleccione...</option>
+                                    <option value="CC">Cédula de Ciudadanía</option>
+                                    <option value="CE">Cédula de Extranjería</option>
+                                    <option value="NIT">NIT</option>
+                                    <option value="PAS">Pasaporte</option>
+                                    <option value="TI">Tarjeta de Identidad</option>
+                                    <option value="OTR">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="id_identificacion" class="form-label">Número de Identificación</label>
+                                <input type="text" name="identificacion" id="id_identificacion" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="id_ciudad" class="form-label">Ciudad</label>
+                                <input type="text" name="ciudad" id="id_ciudad" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="id_direccion" class="form-label">Dirección</label>
+                                <input type="text" name="direccion" id="id_direccion" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="id_telefono" class="form-label">Teléfono</label>
+                                <input type="text" name="telefono" id="id_telefono" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_correo" class="form-label">Correo Electrónico</label>
+                        <input type="email" name="correo" id="id_correo" class="form-control">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_observaciones" class="form-label">Observaciones</label>
+                        <textarea name="observaciones" id="id_observaciones" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="guardar_contacto">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+$(document).ready(function() {
+    console.log("Script inicializado correctamente");
+    
+    // Inicializar select2 para los dropdowns
+    if ($.fn.select2) {
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+    }
+    
+    // Mostrar u ocultar campos según el tipo de correspondencia
+    function toggleCorrespondenciaFields() {
+        const tipo = $('#id_tipo_correspondencia').val();
+        $('#entrada_fields, #salida_fields, #interna_fields').hide();
+        
+        if (tipo === 'ENT') {
+            $('#entrada_fields').show();
+        } else if (tipo === 'SAL') {
+            $('#salida_fields').show();
+        } else if (tipo === 'INT') {
+            $('#interna_fields').show();
+        }
+    }
+    
+    // Iniciar con la visualización correcta
+    toggleCorrespondenciaFields();
+    
+    // Cambiar campos cuando cambia el tipo de correspondencia
+    $('#id_tipo_correspondencia').change(function() {
+        toggleCorrespondenciaFields();
+        
+        // Actualizar campos según el tipo de correspondencia (AJAX)
+        const tipo = $(this).val();
+        $.ajax({
+            url: "{% url 'actualizar_campos_tipo_correspondencia' %}",
+            data: {
+                'tipo': tipo
+            },
+            dataType: 'json',
+            success: function(data) {
+                // Actualizar datos si se necesita
+            }
+        });
+    });
+    
+    // Cargar subseries al cambiar la serie (MEJORADO)
+    $('#id_serie_documental').on('change', function() {
+        console.log("Serie cambiada, valor seleccionado:", $(this).val());
+        const serieId = $(this).val();
+        if (serieId) {
+            // Mostrar mensaje de carga
+            $('#id_subserie_documental').empty().append('<option value="">Cargando subseries...</option>');
+            
+            // Realizar petición AJAX con token CSRF
+            $.ajax({
+                url: "{% url 'cargar_subseries_ajax' %}",
+                type: 'GET',
+                data: {
+                    'serie_id': serieId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    console.log("Datos recibidos:", data);
+                    $('#id_subserie_documental').empty();
+                    $('#id_subserie_documental').append('<option value="">Seleccione una subserie...</option>');
+                    
+                    if (data && data.length > 0) {
+                        $.each(data, function(i, subserie) {
+                            $('#id_subserie_documental').append(
+                                $('<option></option>').val(subserie.id).text(subserie.nombre)
+                            );
+                        });
+                    } else {
+                        $('#id_subserie_documental').append('<option value="">No hay subseries disponibles</option>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al cargar subseries:", error);
+                    console.log("Respuesta del servidor:", xhr.responseText);
+                    $('#id_subserie_documental').empty();
+                    $('#id_subserie_documental').append('<option value="">Error al cargar subseries</option>');
+                }
+            });
+        } else {
+            $('#id_subserie_documental').empty();
+            $('#id_subserie_documental').append('<option value="">Seleccione primero una serie</option>');
+        }
+    });
+    
+    // Abrir modal de nuevo contacto
+    $('#btn_nuevo_remitente, #btn_nuevo_destinatario').click(function() {
+        // Limpiar formulario
+        $('#contactoForm')[0].reset();
+        
+        // Guardar referencia al botón que abrió el modal
+        window.currentContactoButton = $(this).attr('id');
+        
+        // Mostrar modal
+        $('#contactoModal').modal('show');
+    });
+    
+    // Guardar nuevo contacto
+    $('#guardar_contacto').click(function() {
+        const formData = $('#contactoForm').serialize();
+        
+        $.ajax({
+            url: "{% url 'crear_contacto_ajax' %}",
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    // Cerrar modal
+                    $('#contactoModal').modal('hide');
+                    
+                    // Crear nueva opción en el select correspondiente
+                    const newOption = new Option(data.contacto.nombre, data.contacto.id, true, true);
+                    
+                    if (window.currentContactoButton === 'btn_nuevo_remitente') {
+                        $('#id_remitente_externo').append(newOption).trigger('change');
+                    } else if (window.currentContactoButton === 'btn_nuevo_destinatario') {
+                        $('#id_destinatario_externo').append(newOption).trigger('change');
+                    }
+                    
+                    // Mostrar mensaje de éxito
+                    alert('Contacto creado exitosamente');
+                } else {
+                    // Mostrar errores
+                    let errorMsg = 'Se encontraron los siguientes errores:\n';
+                    for (const key in data.errors) {
+                        errorMsg += `- ${data.errors[key]}\n`;
+                    }
+                    alert(errorMsg);
+                }
+            },
+            error: function() {
+                alert('Ocurrió un error al crear el contacto');
+            }
+        });
+    });
+    
+    // Validar formulario antes de enviar
+    $('#correspondencia_form').submit(function(event) {
+        // Validación mejorada
+        const tipo = $('#id_tipo_correspondencia').val();
+        let valid = true;
+        
+        // Visualizar y limpiar mensajes de error existentes
+        $('.validation-error').remove();
+        
+        if (tipo === 'ENT') {
+            // Validar remitente externo
+            if (!$('#id_remitente_externo').val()) {
+                $('#id_remitente_externo').after('<div class="text-danger validation-error">Debe seleccionar un remitente externo</div>');
+                valid = false;
+            }
+            
+            // Validar oficina destinataria
+            if (!$('#id_oficina_destinatario').val()) {
+                $('#id_oficina_destinatario').after('<div class="text-danger validation-error">Debe seleccionar una oficina destinataria</div>');
+                valid = false;
+            }
+        } else if (tipo === 'SAL') {
+            // Validar oficina remitente
+            if (!$('#id_oficina_remitente').val()) {
+                $('#id_oficina_remitente').after('<div class="text-danger validation-error">Debe seleccionar una oficina remitente</div>');
+                valid = false;
+            }
+            
+            // Validar destinatario externo
+            if (!$('#id_destinatario_externo').val()) {
+                $('#id_destinatario_externo').after('<div class="text-danger validation-error">Debe seleccionar un destinatario externo</div>');
+                valid = false;
+            }
+        } else if (tipo === 'INT') {
+            // Validar oficina remitente
+            if (!$('#id_oficina_remitente').val()) {
+                $('#id_oficina_remitente').after('<div class="text-danger validation-error">Debe seleccionar una oficina remitente</div>');
+                valid = false;
+            }
+            
+            // Validar oficina destinataria
+            if (!$('#id_oficina_destinatario').val()) {
+                $('#id_oficina_destinatario').after('<div class="text-danger validation-error">Debe seleccionar una oficina destinataria</div>');
+                valid = false;
+            }
+        }
+        
+        // Imprimir valores de los campos en la consola para depuración
+        console.log("Tipo de correspondencia:", tipo);
+        console.log("Remitente externo:", $('#id_remitente_externo').val());
+        console.log("Destinatario externo:", $('#id_destinatario_externo').val());
+        console.log("Oficina remitente:", $('#id_oficina_remitente').val());
+        console.log("Oficina destinatario:", $('#id_oficina_destinatario').val());
+        
+        if (!valid) {
+            event.preventDefault(); // Evitar envío del formulario si hay errores
+            $('html, body').animate({
+                scrollTop: $('.validation-error:first').offset().top - 100
+            }, 200);
+        }
+        
+        return valid;
+    });
+});
+</script>
+{% endblock %} 
